@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBER INVADER - サイバー弾幕シューティング</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-container">
+  <canvas id="game-canvas"></canvas>
+  <div id="overlay">
+    <div id="title-screen" class="screen active">
+      <h1 class="glitch" data-text="CYBER INVADER">CYBER INVADER</h1>
+      <p class="subtitle">サイバー弾幕シューティング</p>
+      <div class="controls-info">
+        <p>← → ↑ ↓ : 移動</p>
+        <p>Z : ショット</p>
+        <p>X : フォーカス（低速精密移動）</p>
+        <p>C : ボム</p>
+        <p>V : ボム切替（クリア/吸収）</p>
+      </div>
+      <button id="start-btn">START</button>
+      <p id="high-score-display" class="high-score"></p>
+    </div>
+    <div id="stage-clear-screen" class="screen">
+      <h2 id="stage-clear-title">STAGE CLEAR</h2>
+      <p id="stage-clear-score"></p>
+      <p id="stage-clear-highscore" class="high-score"></p>
+      <button id="next-stage-btn">NEXT STAGE</button>
+    </div>
+    <div id="game-over-screen" class="screen">
+      <h2>GAME OVER</h2>
+      <p id="game-over-score"></p>
+      <p id="game-over-stage"></p>
+      <p id="game-over-highscore" class="high-score"></p>
+      <button id="retry-btn">RETRY</button>
+    </div>
+    <div id="victory-screen" class="screen">
+      <h2>MISSION COMPLETE</h2>
+      <p id="victory-score"></p>
+      <p id="victory-highscore" class="high-score"></p>
+      <button id="title-btn">TITLE</button>
+    </div>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

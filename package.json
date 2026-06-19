@@ -1,0 +1,8 @@
+{
+  "name": "cyber-invader",
+  "version": "1.0.0",
+  "description": "レトロ風インベーダー×ギャラクシアンのサイバー弾幕シューティング",
+  "scripts": {
+    "dev": "node server.js"
+  }
+}
