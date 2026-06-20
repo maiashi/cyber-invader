@@ -26,6 +26,7 @@ export class Player {
     this.flashTimer = 0; // Visual flash on power-up
     this.trail = []; // Trail positions for visual effect
     this.autoShoot = true; // Auto-shoot enabled
+    this.animFrame = 0; // Animation frame counter
   }
 
   reset() {
@@ -42,20 +43,22 @@ export class Player {
     this.absorbTimer = 0;
     this.flashTimer = 0;
     this.trail = [];
+    this.animFrame = 0;
   }
 
   update(keys) {
+    this.animFrame++;
+
+    // Focus mode
+    this.isFocus = keys['x'] || keys['X'];
+
     // Movement
-    let speed = this.isFocus ? this.focusSpeed : this.speed;
+    const speed = this.isFocus ? this.focusSpeed : this.speed;
 
     if (keys['ArrowLeft'] || keys['a']) this.x -= speed;
     if (keys['ArrowRight'] || keys['d']) this.x += speed;
     if (keys['ArrowUp'] || keys['w']) this.y -= speed;
     if (keys['ArrowDown'] || keys['s']) this.y += speed;
-
-    // Focus mode
-    this.isFocus = keys['x'] || keys['X'];
-    if (this.isFocus) speed = this.focusSpeed;
 
     // Clamp to screen
     this.x = clamp(this.x, this.w / 2, CANVAS_W - this.w / 2);
@@ -167,7 +170,8 @@ export class Player {
 
     // Absorb shield glow
     if (this.absorbTimer > 0) {
-      ctx.strokeStyle = `rgba(255, 255, 0, ${0.5 + 0.5 * Math.sin(Date.now() / 100)})`;
+      const glow = Math.sin(this.animFrame / 8) * 0.3 + 0.7;
+      ctx.strokeStyle = `rgba(255, 255, 0, ${glow})`;
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(this.x, this.y, 18, 0, Math.PI * 2);

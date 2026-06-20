@@ -196,7 +196,6 @@ export function createBoss() {
 }
 
 // Update boss phases
-let lastBossPhase = -1;
 export function updateBossPhases(boss) {
   const hpRatio = boss.hp / boss.maxHp;
   let newPhase = 0;

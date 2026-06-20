@@ -299,7 +299,7 @@ export class Enemy {
   }
 
   drawBoss(ctx, color) {
-    const frame = performance.now() / 1000;
+    const frame = this.frame / 60;
     // Pulsating glow
     const pulse = Math.sin(frame * 3) * 0.3 + 0.7;
     ctx.shadowBlur = 20 * pulse;

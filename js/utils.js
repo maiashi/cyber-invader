@@ -29,16 +29,6 @@ export function angleTo(x1, y1, x2, y2) {
   return Math.atan2(y2 - y1, x2 - x1);
 }
 
-// Check circle collision
-export function circleCollision(x1, y1, r1, x2, y2, r2) {
-  return dist(x1, y1, x2, y2) < r1 + r2;
-}
-
-// Check if point is within screen bounds
-export function inBounds(x, y, margin = 0) {
-  return x > margin && x < CANVAS_W - margin && y > margin && y < CANVAS_H - margin;
-}
-
 // Lerp
 export function lerp(a, b, t) {
   return a + (b - a) * t;

@@ -10,7 +10,7 @@ import { Particle, ParticleSystem } from './particle.js';
 import { PowerUp } from './powerup.js';
 import { audio } from './audio.js';
 import { STAGES, BOSS, createSpawnConfig, createBoss, updateBossPhases, getPhaseName, getPhaseNameTimer, decrementPhaseNameTimer } from './stage.js';
-import { rand, randInt, clamp, circleCollision } from './utils.js';
+import { rand, randInt, clamp } from './utils.js';
 
 // Game state
 const STATE = {
@@ -160,7 +160,6 @@ function scheduleSpawn(spawnDef, delay) {
 }
 
 function nextStage() {
-  console.log(`[NEXT STAGE] current stage=${stage}, STAGES.length=${STAGES.length}`);
   stage++;
   if (stage < STAGES.length) {
     startStage();
@@ -170,7 +169,6 @@ function nextStage() {
     gameState = STATE.BOSS;
   }
   hideAllScreens();
-  console.log(`[NEXT STAGE] new stage=${stage}, gameState=${gameState}`);
 }
 
 function showStageClear() {
@@ -221,8 +219,6 @@ function update() {
   // Stage transition
   if (stageTransition > 0) {
     stageTransition--;
-    // Draw stage name
-    drawStageName();
     return;
   }
 
@@ -232,15 +228,13 @@ function update() {
   // Update player
   player.update(keys);
 
-  // Player shot (auto-shoot + manual)
-  if (keys['z'] || keys['Z'] || keys[' '] || true) { // Auto-shoot enabled
-    const newBullets = player.shoot();
-    if (newBullets.length > 0) {
-      playerBullets.push(...newBullets.map(b => new PlayerBullet(b.x, b.y, b.vx, b.vy, b.size, b.color)));
-      // Only play audio on actual key press, not auto-shoot
-      if (keys['z'] || keys['Z'] || keys[' ']) {
-        audio.shoot();
-      }
+  // Player shot (auto-shoot)
+  const newBullets = player.shoot();
+  if (newBullets.length > 0) {
+    playerBullets.push(...newBullets.map(b => new PlayerBullet(b.x, b.y, b.vx, b.vy, b.size, b.color)));
+    // Only play audio on actual key press, not auto-shoot
+    if (keys['z'] || keys['Z'] || keys[' ']) {
+      audio.shoot();
     }
   }
 
@@ -424,7 +418,6 @@ function update() {
 
   // Check stage clear: all spawns fired AND no enemies alive (minimum 60 frames)
   if (stageTimer >= 60 && pendingSpawns === 0 && enemies.length === 0 && stageTransition <= 0) {
-    console.log(`[STAGE CLEAR] stage=${stage}, stageTimer=${stageTimer}, enemies=${enemies.length}, gameState=${gameState}`);
     if (stage < STAGES.length) {
       showStageClear();
     } else {
@@ -472,7 +465,9 @@ function onEnemyKilled(enemy) {
   const stageDef = STAGES[stage] || { powerUpDrop: 0.2, bombDrop: 0.1 };
   if (Math.random() < stageDef.powerUpDrop) {
     powerUps.push(new PowerUp(enemy.x, enemy.y, 'POWER'));
-  } else if (Math.random() < stageDef.bombDrop) {
+  }
+  // Bomb drop is independent of power-up drop
+  if (Math.random() < stageDef.bombDrop) {
     powerUps.push(new PowerUp(enemy.x, enemy.y, 'BOMB'));
   }
 
@@ -538,8 +533,8 @@ function draw() {
   // Particles
   particles.draw(ctx);
 
-  // Flash effect
-  drawFlash();
+  // Stage name during transition
+  drawStageName();
 
   // HUD
   drawHUD();
@@ -604,14 +599,11 @@ function drawGrid() {
 
   // Bright intersection points
   ctx.fillStyle = COLORS.gridBright;
-  for (const vl of gridLines) {
-    if (vl.type !== 'v') continue;
-    for (const hl of gridLines) {
-      if (hl.type !== 'h') continue;
-      const y = hl.y + gridOffset.y;
-      if (y <= CANVAS_H) {
-        ctx.fillRect(vl.x - 1, y - 1, 2, 2);
-      }
+  const vSpacing = 40;
+  const hSpacing = 40;
+  for (let x = 0; x < CANVAS_W; x += vSpacing) {
+    for (let y = gridOffset.y; y <= CANVAS_H; y += hSpacing) {
+      ctx.fillRect(x - 1, y - 1, 2, 2);
     }
   }
 }
@@ -639,16 +631,6 @@ function drawLasers() {
       ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.5})`;
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
     }
-  }
-}
-
-function drawFlash() {
-  // Bomb flash overlay
-  const flash = lasers.find(l => l.type === 'flash');
-  if (flash) {
-    const alpha = flash.life / flash.maxLife;
-    ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.3})`;
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
   }
 }
 
@@ -735,6 +717,13 @@ function drawHUD() {
   ctx.restore();
 }
 
+function drawTitleBg() {
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  drawStars();
+  drawGrid();
+}
+
 // ============================================================
 // Game Loop
 // ============================================================
@@ -758,6 +747,12 @@ function gameLoop(timestamp) {
   if (delta < FRAME_TIME * 0.5) return; // Skip if too soon
 
   lastTime = timestamp;
+
+  // Title screen: just draw background
+  if (gameState === STATE.TITLE) {
+    drawTitleBg();
+    return;
+  }
 
   update();
   draw();
@@ -823,22 +818,3 @@ canvas.addEventListener('touchend', (e) => {
 
 // Start game loop
 requestAnimationFrame(gameLoop);
-
-// Draw title screen background
-function drawTitleBg() {
-  if (gameState !== STATE.TITLE) return;
-  ctx.fillStyle = COLORS.bg;
-  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  drawStars();
-  drawGrid();
-}
-
-// Override draw for title screen
-const originalDraw = draw;
-draw = function () {
-  if (gameState === STATE.TITLE) {
-    drawTitleBg();
-    return;
-  }
-  originalDraw();
-};
